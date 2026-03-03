@@ -11,6 +11,7 @@ import { arxivHandler } from './arxiv.js';
 import { gutenbergHandler } from './gutenberg.js';
 import { localFileHandler } from './local-file.js';
 import { localMultiDocHandler } from './local-multi-doc.js';
+import { jsonMultiDocHandler } from './json-multi-doc.js';
 
 export const HANDLERS: HandlerRegistry = {
   'cornell-lii': cornellLiiHandler,
@@ -19,6 +20,7 @@ export const HANDLERS: HandlerRegistry = {
   'gutenberg': gutenbergHandler,
   'local-file': localFileHandler,
   'local-multi-doc': localMultiDocHandler,
+  'json-multi-doc': jsonMultiDocHandler,
 };
 
 export type { DatasetHandler, DatasetYamlConfig, HandlerRegistry } from './types.js';

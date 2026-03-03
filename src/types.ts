@@ -11,7 +11,8 @@ export interface DocumentInfo {
   title: string;
   content: string | Buffer; // Support both text and binary content
   format?: 'text/plain' | 'text/markdown' | 'image/jpeg' | 'image/png' | string; // MIME type
-  metadata?: Record<string, any>;
+  language?: string; // ISO 639-1 lowercase (e.g., "en", "fr", "de")
+  metadata?: Record<string, unknown>;
 }
 
 export interface DatasetConfig {
@@ -31,6 +32,12 @@ export interface DatasetConfig {
   isMultiDocument?: boolean; // If true, uses loadDocuments instead of loadText
   loadDocuments?: () => Promise<DocumentInfo[]>; // For multi-document datasets
 
+  // Custom load workflow (handler manages its own multi-phase uploads)
+  customLoad?: (
+    client: import('@semiont/api-client').SemiontApiClient,
+    auth: import('@semiont/core').AccessToken,
+  ) => Promise<import('./handlers/types.js').CustomLoadResult>;
+
   // Common fields
   entityTypes: string[];
   createTableOfContents: boolean;
@@ -40,6 +47,9 @@ export interface DatasetConfig {
     startPattern: RegExp;
     endMarker: string;
   };
+
+  // Annotate command config (highlight phases use Semiont AI)
+  highlightPhases?: import('./handlers/types.js').HighlightPhaseConfig[];
 }
 
 /**

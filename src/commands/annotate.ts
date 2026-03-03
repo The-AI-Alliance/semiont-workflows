@@ -1,8 +1,9 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { SemiontApiClient } from '@semiont/api-client';
 import type { ResourceUri } from '@semiont/core';
-import { baseUrl, resourceUri } from '@semiont/core';
+import { baseUrl, resourceUri, EventBus } from '@semiont/core';
 import type { DatasetConfigWithPaths } from '../types.js';
+import type { HighlightPhaseConfig } from '../handlers/types.js';
 import { DATASETS } from '../datasets/loader.js';
 import { chunkBySize, chunkText, type ChunkInfo } from '../chunking.js';
 import { authenticate } from '../auth.js';
@@ -14,6 +15,7 @@ import {
   printSectionHeader,
   printInfo,
   printSuccess,
+  printWarning,
   printBatchProgress,
   printCompletion,
   printError,
@@ -25,6 +27,7 @@ interface DemoState {
   chunkIds?: ResourceUri[];
   references?: TableOfContentsReference[];
   formattedText: string;
+  phaseResourceIds?: Record<string, ResourceUri[]>;
 }
 
 function loadState(dataset: DatasetConfigWithPaths): DemoState {
@@ -39,6 +42,95 @@ function loadState(dataset: DatasetConfigWithPaths): DemoState {
   }
 
   return state;
+}
+
+/**
+ * Run annotateHighlights on a single resource via SSE, returning the number of highlights created.
+ */
+async function annotateHighlightsForResource(
+  resourceId: ResourceUri,
+  instructions: string,
+  density: number | undefined,
+  client: SemiontApiClient,
+  auth: import('@semiont/core').AccessToken,
+): Promise<void> {
+  const eventBus = new EventBus();
+
+  const completionPromise = new Promise<void>((resolve, reject) => {
+    const finishedSub = eventBus.get('annotate:assist-finished').subscribe(() => {
+      finishedSub.unsubscribe();
+      failedSub.unsubscribe();
+      resolve();
+    });
+    const failedSub = eventBus.get('annotate:assist-failed').subscribe((result) => {
+      finishedSub.unsubscribe();
+      failedSub.unsubscribe();
+      const msg = (result as unknown as Record<string, unknown>).error ?? 'Unknown error';
+      reject(new Error(`Highlight annotation failed: ${msg}`));
+    });
+  });
+
+  const stream = client.sse.annotateHighlights(
+    resourceId,
+    { instructions, density },
+    { auth, eventBus },
+  );
+
+  try {
+    await completionPromise;
+  } finally {
+    stream.close();
+    eventBus.destroy();
+  }
+}
+
+/**
+ * Execute highlight phases: for each phase, iterate over target resources
+ * and call annotateHighlights with the configured prompt.
+ */
+async function executeHighlightPhases(
+  highlightPhases: HighlightPhaseConfig[],
+  state: DemoState,
+  client: SemiontApiClient,
+  auth: import('@semiont/core').AccessToken,
+): Promise<number> {
+  let totalAnnotated = 0;
+  let stepNumber = 2;
+
+  for (const phase of highlightPhases) {
+    printSectionHeader('🔍', stepNumber++, phase.displayName);
+
+    const resourceIds = state.phaseResourceIds?.[phase.phase];
+    if (!resourceIds || resourceIds.length === 0) {
+      printWarning(`No resources found for phase "${phase.phase}" in state`);
+      continue;
+    }
+
+    printInfo(`Annotating ${resourceIds.length} resources with AI highlights...`);
+    printInfo(`Instructions: "${phase.instructions}"`);
+
+    let succeeded = 0;
+    let failed = 0;
+
+    for (let i = 0; i < resourceIds.length; i++) {
+      printBatchProgress(i + 1, resourceIds.length, `Highlighting resource ${i + 1}...`);
+
+      try {
+        await annotateHighlightsForResource(
+          resourceIds[i], phase.instructions, phase.density, client, auth,
+        );
+        succeeded++;
+      } catch (error) {
+        failed++;
+        printWarning(`Failed on resource ${i + 1}: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
+
+    printSuccess(`Highlighted ${succeeded}/${resourceIds.length} resources (${failed} failed)`);
+    totalAnnotated += succeeded;
+  }
+
+  return totalAnnotated;
 }
 
 export async function annotateCommand(datasetName: string): Promise<void> {
@@ -77,9 +169,31 @@ export async function annotateCommand(datasetName: string): Promise<void> {
     printSectionHeader('📂', 1, 'Load State');
     const state = loadState(dataset);
 
-    // Check if this dataset supports citation detection
+    // Branch: Highlight phases (AI-driven) vs Citation detection (legacy)
+    if (dataset.highlightPhases && dataset.highlightPhases.length > 0) {
+      // AI-driven highlighting via Semiont SSE
+      if (!state.phaseResourceIds) {
+        throw new Error('No phaseResourceIds found in state. Run the load command first.');
+      }
+
+      printSuccess(`Loaded state with ${Object.keys(state.phaseResourceIds).length} phases`);
+
+      const totalAnnotated = await executeHighlightPhases(
+        dataset.highlightPhases, state, client, auth,
+      );
+
+      // Summary
+      console.log();
+      console.log('📊 Summary:');
+      console.log(`   Resources highlighted: ${totalAnnotated}`);
+
+      printCompletion();
+      return;
+    }
+
+    // Legacy: Citation detection
     if (!dataset.detectCitations) {
-      printInfo('This dataset does not support the annotate command (no citations to detect)');
+      printInfo('This dataset does not support the annotate command');
       printCompletion();
       return;
     }

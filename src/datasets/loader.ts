@@ -69,6 +69,14 @@ function yamlToDatasetConfig(yamlConfig: DatasetYamlConfig, scenarioDir: string)
       }
       return result;
     } : undefined,
+
+    // Custom load: handler manages its own upload workflow (multi-phase with cross-references)
+    customLoad: handler.customLoad
+      ? (client, auth) => handler.customLoad!(resolvedConfig, scenarioDir, client, auth)
+      : undefined,
+
+    // Annotate command config
+    highlightPhases: yamlConfig.highlightPhases,
   };
 }
 

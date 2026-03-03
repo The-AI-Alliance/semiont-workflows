@@ -8,17 +8,10 @@ import type { SemiontApiClient } from '@semiont/api-client';
 import type { AccessToken, ResourceUri } from '@semiont/core';
 import { resourceUri } from '@semiont/core';
 import type { ChunkInfo } from './chunking';
+import type { DocumentInfo } from './types';
 import { printBatchProgress, printSuccess, printInfo, printWarning } from './display';
 
-/**
- * Document info for multi-document uploads
- */
-export interface DocumentInfo {
-  title: string;
-  content: string | Buffer; // Support both text and binary content
-  format?: 'text/plain' | 'text/markdown' | 'image/jpeg' | 'image/png' | string; // MIME type
-  metadata?: Record<string, unknown>;
-}
+export type { DocumentInfo } from './types';
 
 export interface UploadOptions {
   entityTypes?: string[];
@@ -182,6 +175,7 @@ export async function uploadDocuments(
         file: fileBuffer,
         format,
         entityTypes,
+        ...(doc.language ? { language: doc.language.toLowerCase() } : {}),
       };
 
       const response = await client.createResource(request, { auth });
