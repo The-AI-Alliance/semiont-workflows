@@ -6,26 +6,34 @@ Configuration-driven demonstration of [Semiont](https://github.com/The-AI-Allian
 
 ## Quick Start
 
+### Local (npm-only)
+
+Run Semiont locally with no repo clone required -- just the published CLI:
+
+```bash
+npm install -g @semiont/cli
+mkdir my_project && cd my_project
+export SEMIONT_ROOT=$(pwd) SEMIONT_ENV=local
+semiont init
+semiont provision
+semiont start
+semiont useradd --email you@example.com --generate-password --admin
+```
+
+Open http://localhost:8080 and log in. See [docs/LOCAL-SEMIONT.md](docs/LOCAL-SEMIONT.md) for the full walkthrough.
+
+### GitHub Codespaces
+
 Launch the complete demo environment with one click (no installation required):
 
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new/The-AI-Alliance/semiont-workflows)
-
-**What's included:**
-
-- Semiont frontend, backend, and database (all pre-configured)
-- Envoy proxy for production-like routing
-- Demo admin account with sample data
-- Interactive terminal UI for dataset operations
-- Ready in ~2 minutes
-
-**After launch:**
 
 1. Make port **8080** public (Ports tab → right-click → Public)
 2. Visit the URL shown in the terminal
 3. Login with the demo credentials displayed
 4. Run `npm run demo:interactive` to explore datasets
 
-See [docs/SETUP.md](docs/SETUP.md) for detailed setup instructions.
+See [docs/SETUP.md](docs/SETUP.md) for detailed Codespaces and devcontainer setup.
 
 > **Note**: Dataset configurations are stored in the [structured-knowledge](https://github.com/The-AI-Alliance/structured-knowledge) repository (linked as a git submodule). GitHub Codespaces automatically initializes submodules. For local setup, see the setup guide.
 
@@ -123,6 +131,7 @@ See [docs/ENVOY.md](docs/ENVOY.md) for routing details and [docs/CONTAINER.md](d
 **Getting Started:**
 
 - [Setup Guide](docs/SETUP.md) - Installation and first steps
+- [Local Semiont](docs/LOCAL-SEMIONT.md) - Run Semiont locally via npm (no repo clone needed)
 - [Interactive UI](docs/INTERACTIVE.md) - Terminal interface reference
 - [Workflow Guide](docs/WORKFLOW.md) - Four-phase processing workflow
 
@@ -156,6 +165,7 @@ semiont-workflows/
 ├── src/types.ts             # Config type definitions
 ├── docs/                     # Documentation
 │   ├── SETUP.md             # Setup guide
+│   ├── LOCAL-SEMIONT.md     # Local Semiont via npm
 │   ├── ENVOY.md             # Routing architecture
 │   ├── WORKFLOW.md          # Processing workflow
 │   ├── INTERACTIVE.md       # Terminal UI reference
