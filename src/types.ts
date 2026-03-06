@@ -50,6 +50,7 @@ export interface DatasetConfig {
 
   // Annotate command config (highlight phases use Semiont AI)
   highlightPhases?: import('./handlers/types.js').HighlightPhaseConfig[];
+  assessmentPhases?: import('./handlers/types.js').AssessmentPhaseConfig[];
 }
 
 /**

@@ -3,7 +3,7 @@ import { SemiontApiClient } from '@semiont/api-client';
 import type { ResourceUri } from '@semiont/core';
 import { baseUrl, resourceUri, EventBus } from '@semiont/core';
 import type { DatasetConfigWithPaths } from '../types.js';
-import type { HighlightPhaseConfig } from '../handlers/types.js';
+import type { HighlightPhaseConfig, AssessmentPhaseConfig } from '../handlers/types.js';
 import { DATASETS } from '../datasets/loader.js';
 import { chunkBySize, chunkText, type ChunkInfo } from '../chunking.js';
 import { authenticate } from '../auth.js';
@@ -133,6 +133,97 @@ async function executeHighlightPhases(
   return totalAnnotated;
 }
 
+/**
+ * Run annotateAssessments on a single resource via SSE (W3C motivation: assessing).
+ */
+async function annotateAssessmentsForResource(
+  resourceId: ResourceUri,
+  instructions: string,
+  tone: AssessmentPhaseConfig['tone'],
+  density: number | undefined,
+  client: SemiontApiClient,
+  auth: import('@semiont/core').AccessToken,
+): Promise<void> {
+  const eventBus = new EventBus();
+
+  const completionPromise = new Promise<void>((resolve, reject) => {
+    const finishedSub = eventBus.get('annotate:assist-finished').subscribe(() => {
+      finishedSub.unsubscribe();
+      failedSub.unsubscribe();
+      resolve();
+    });
+    const failedSub = eventBus.get('annotate:assist-failed').subscribe((result) => {
+      finishedSub.unsubscribe();
+      failedSub.unsubscribe();
+      const msg = (result as unknown as Record<string, unknown>).error ?? 'Unknown error';
+      reject(new Error(`Assessment annotation failed: ${msg}`));
+    });
+  });
+
+  const stream = client.sse.annotateAssessments(
+    resourceId,
+    { instructions, tone, density },
+    { auth, eventBus },
+  );
+
+  try {
+    await completionPromise;
+  } finally {
+    stream.close();
+    eventBus.destroy();
+  }
+}
+
+/**
+ * Execute assessment phases: for each phase, iterate over target resources
+ * and call annotateAssessments with the configured prompt and tone.
+ */
+async function executeAssessmentPhases(
+  assessmentPhases: AssessmentPhaseConfig[],
+  state: DemoState,
+  startStep: number,
+  client: SemiontApiClient,
+  auth: import('@semiont/core').AccessToken,
+): Promise<number> {
+  let totalAnnotated = 0;
+  let stepNumber = startStep;
+
+  for (const phase of assessmentPhases) {
+    printSectionHeader('📋', stepNumber++, phase.displayName);
+
+    const resourceIds = state.phaseResourceIds?.[phase.phase];
+    if (!resourceIds || resourceIds.length === 0) {
+      printWarning(`No resources found for phase "${phase.phase}" in state`);
+      continue;
+    }
+
+    printInfo(`Annotating ${resourceIds.length} resources with AI assessments...`);
+    printInfo(`Tone: ${phase.tone ?? 'default'} | Instructions: "${phase.instructions}"`);
+
+    let succeeded = 0;
+    let failed = 0;
+
+    for (let i = 0; i < resourceIds.length; i++) {
+      printBatchProgress(i + 1, resourceIds.length, `Assessing resource ${i + 1}...`);
+
+      try {
+        await annotateAssessmentsForResource(
+          resourceIds[i], phase.instructions, phase.tone, phase.density, client, auth,
+        );
+        succeeded++;
+      } catch (error) {
+        failed++;
+        printWarning(`Failed on resource ${i + 1}: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
+
+    printSuccess(`Assessed ${succeeded}/${resourceIds.length} resources (${failed} failed)`);
+    totalAnnotated += succeeded;
+  }
+
+  return totalAnnotated;
+}
+
 export async function annotateCommand(datasetName: string): Promise<void> {
   const dataset = DATASETS[datasetName];
   if (!dataset) {
@@ -169,23 +260,39 @@ export async function annotateCommand(datasetName: string): Promise<void> {
     printSectionHeader('📂', 1, 'Load State');
     const state = loadState(dataset);
 
-    // Branch: Highlight phases (AI-driven) vs Citation detection (legacy)
-    if (dataset.highlightPhases && dataset.highlightPhases.length > 0) {
-      // AI-driven highlighting via Semiont SSE
+    // Branch: AI-driven phases (highlight and/or assess) vs Citation detection (legacy)
+    const hasHighlightPhases = dataset.highlightPhases && dataset.highlightPhases.length > 0;
+    const hasAssessmentPhases = dataset.assessmentPhases && dataset.assessmentPhases.length > 0;
+
+    if (hasHighlightPhases || hasAssessmentPhases) {
       if (!state.phaseResourceIds) {
         throw new Error('No phaseResourceIds found in state. Run the load command first.');
       }
 
       printSuccess(`Loaded state with ${Object.keys(state.phaseResourceIds).length} phases`);
 
-      const totalAnnotated = await executeHighlightPhases(
-        dataset.highlightPhases, state, client, auth,
-      );
+      let totalHighlighted = 0;
+      let totalAssessed = 0;
+      let nextStep = 2;
+
+      if (hasHighlightPhases) {
+        totalHighlighted = await executeHighlightPhases(
+          dataset.highlightPhases!, state, client, auth,
+        );
+        nextStep += dataset.highlightPhases!.length;
+      }
+
+      if (hasAssessmentPhases) {
+        totalAssessed = await executeAssessmentPhases(
+          dataset.assessmentPhases!, state, nextStep, client, auth,
+        );
+      }
 
       // Summary
       console.log();
       console.log('📊 Summary:');
-      console.log(`   Resources highlighted: ${totalAnnotated}`);
+      if (hasHighlightPhases) console.log(`   Resources highlighted: ${totalHighlighted}`);
+      if (hasAssessmentPhases) console.log(`   Resources assessed:    ${totalAssessed}`);
 
       printCompletion();
       return;

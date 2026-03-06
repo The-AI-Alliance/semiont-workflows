@@ -83,6 +83,37 @@ export interface HighlightPhaseConfig {
 }
 
 /**
+ * Assessment phase configuration for the annotate command.
+ * Each phase targets resources from an upload phase and uses Semiont's AI
+ * to create assessment annotations (W3C motivation: assessing) with a given prompt.
+ */
+export interface AssessmentPhaseConfig {
+  name: string;
+  displayName: string;
+  phase: string;           // upload phase whose resources to annotate
+  instructions: string;    // prompt for Semiont's annotateAssessments AI
+  tone?: 'analytical' | 'critical' | 'balanced' | 'constructive';
+  density?: number;        // assessments per 2000 words (1-10)
+  entityTypes: string[];
+}
+
+/**
+ * Source entry for the web-multi-source handler.
+ * Each source is downloaded, cached, and uploaded as its own Semiont resource.
+ */
+export interface SourceConfig {
+  id: string;              // unique slug used as cache filename ({id}.txt)
+  title: string;           // human-readable title for the resource
+  url: string;             // URL to fetch during download
+  type: string;            // content type: article | blog | reddit-thread | podcast | video | research-report
+  source?: string;         // publication name (e.g. "MIT Technology Review")
+  author?: string;
+  date?: string;           // ISO date string (YYYY-MM-DD)
+  tags?: string;           // comma-separated tags
+  extractSelector?: string; // optional CSS selector to focus extraction
+}
+
+/**
  * Configuration data from YAML file
  */
 export interface DatasetYamlConfig {
@@ -123,8 +154,12 @@ export interface DatasetYamlConfig {
   tocPhases?: TocPhaseConfig[];
   masterToc?: MasterTocConfig;
 
+  // web-multi-source handler config
+  sources?: SourceConfig[];
+
   // Annotate command config
   highlightPhases?: HighlightPhaseConfig[];
+  assessmentPhases?: AssessmentPhaseConfig[];
 }
 
 /**

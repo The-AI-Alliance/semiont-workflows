@@ -77,6 +77,7 @@ function yamlToDatasetConfig(yamlConfig: DatasetYamlConfig, scenarioDir: string)
 
     // Annotate command config
     highlightPhases: yamlConfig.highlightPhases,
+    assessmentPhases: yamlConfig.assessmentPhases,
   };
 }
 

@@ -12,6 +12,7 @@ import { gutenbergHandler } from './gutenberg.js';
 import { localFileHandler } from './local-file.js';
 import { localMultiDocHandler } from './local-multi-doc.js';
 import { jsonMultiDocHandler } from './json-multi-doc.js';
+import { webMultiSourceHandler } from './web-multi-source.js';
 
 export const HANDLERS: HandlerRegistry = {
   'cornell-lii': cornellLiiHandler,
@@ -21,6 +22,7 @@ export const HANDLERS: HandlerRegistry = {
   'local-file': localFileHandler,
   'local-multi-doc': localMultiDocHandler,
   'json-multi-doc': jsonMultiDocHandler,
+  'web-multi-source': webMultiSourceHandler,
 };
 
 export type { DatasetHandler, DatasetYamlConfig, HandlerRegistry } from './types.js';
