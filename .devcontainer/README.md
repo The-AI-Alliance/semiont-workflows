@@ -1,4 +1,4 @@
-# Semiont Agents Demo Devcontainer
+# Semiont Workflows Demo Devcontainer
 
 Production-ready demo environment that uses published [Semiont](https://github.com/The-AI-Alliance/semiont) containers and packages.
 
@@ -8,16 +8,16 @@ Production-ready demo environment that uses published [Semiont](https://github.c
 
 ### GitHub Codespaces (Recommended)
 
-Click to launch the Semiont Agents Demo:
+Click to launch the Semiont Workflows Demo:
 
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new/The-AI-Alliance/semiont-agents)
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new/The-AI-Alliance/semiont-workflows)
 
 ### Local Development
 
 ```bash
 # Clone this demo repository
-git clone https://github.com/The-AI-Alliance/semiont-agents.git
-cd semiont-agents
+git clone https://github.com/The-AI-Alliance/semiont-workflows.git
+cd semiont-workflows
 
 # Open in VS Code with Dev Containers extension
 code .
@@ -255,31 +255,31 @@ Docker Compose manages four containers:
 
 - **postgres_data** - Persistent database storage
 - **backend_data** - Backend data directory
-- **workspace** - Demo repository mounted at `/workspaces/semiont-agents`
+- **workspace** - Demo repository mounted at `/workspaces/semiont-workflows`
 
-## Comparison: Semiont Agents Demo vs Semiont Development
+## Comparison: Semiont Workflows Demo vs Semiont Development
 
-This Semiont Agents Demo container vs the [main Semiont development container](https://github.com/The-AI-Alliance/semiont):
+This Semiont Workflows Demo container vs the [main Semiont development container](https://github.com/The-AI-Alliance/semiont):
 
-| Aspect | Semiont Agents Demo (this repo) | Semiont Development |
+| Aspect | Semiont Workflows Demo (this repo) | Semiont Development |
 |--------|----------------------------------|---------------------|
-| **Repository** | `semiont-agents` | `semiont` |
+| **Repository** | `semiont-workflows` | `semiont` |
 | **Purpose** | Explore Semiont features | Build & contribute to Semiont |
 | **Build Time** | ~1-2 minutes | ~5-7 minutes |
 | **Source** | Published Docker images | Local source code |
 | **Packages** | From npm registry | Built locally |
-| **Workspace** | `/workspaces/semiont-agents` | `/workspace` |
+| **Workspace** | `/workspaces/semiont-workflows` | `/workspace` |
 | **Customization** | Configuration only | Full source access |
 | **Best For** | Users, demos, learning | Contributors, developers |
 
 ## About This Repository
 
-This is the standalone Semiont Agents Demo repository for [Semiont](https://github.com/The-AI-Alliance/semiont), showcasing its semantic annotation and knowledge extraction capabilities.
+This is the standalone Semiont Workflows Demo repository for [Semiont](https://github.com/The-AI-Alliance/semiont), showcasing its semantic annotation and knowledge extraction capabilities.
 
 ### Repository Structure
 
 ```text
-semiont-agents/
+semiont-workflows/
 ├── .devcontainer/
 ├── datasets/
 ├── docker-compose.yml

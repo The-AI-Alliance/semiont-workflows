@@ -1,9 +1,9 @@
 {
-  "name": "Semiont Agents Demo",
+  "name": "Semiont Workflows Demo",
 
   "dockerComposeFile": "docker-compose.yml",
   "service": "demo-workspace",
-  "workspaceFolder": "/workspaces/semiont-agents",
+  "workspaceFolder": "/workspaces/semiont-workflows",
 
   "initializeCommand": "bash .devcontainer/init-env.sh",
   "postCreateCommand": "bash .devcontainer/validate-versions.sh && npm install",
@@ -45,7 +45,7 @@
       "settings": {
         "workbench.sideBar.visible": true,
         "workbench.startupView": "workbench.explorer.fileView",
-        "terminal.integrated.cwd": "/workspaces/semiont-agents"
+        "terminal.integrated.cwd": "/workspaces/semiont-workflows"
       }
     },
     "vscode": {
@@ -66,7 +66,7 @@
       ],
       "settings": {
         "terminal.integrated.defaultProfile.linux": "bash",
-        "terminal.integrated.cwd": "/workspaces/semiont-agents",
+        "terminal.integrated.cwd": "/workspaces/semiont-workflows",
         "editor.formatOnSave": true,
         "editor.defaultFormatter": "esbenp.prettier-vscode",
         "typescript.updateImportsOnFileMove.enabled": "always",

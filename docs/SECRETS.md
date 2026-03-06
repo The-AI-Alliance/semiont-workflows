@@ -1,6 +1,6 @@
 # Secrets and Configuration Management
 
-This document explains how secrets and sensitive configuration are handled in the semiont-agents demo repository and how to configure them for production deployments.
+This document explains how secrets and sensitive configuration are handled in the semiont-workflows demo repository and how to configure them for production deployments.
 
 ---
 

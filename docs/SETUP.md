@@ -8,7 +8,7 @@ The fastest way to get started:
 
 1. **Launch Codespace**
 
-   [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new/The-AI-Alliance/semiont-agents)
+   [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new/The-AI-Alliance/semiont-workflows)
 
 2. **Wait for setup** (~2 minutes)
 
@@ -53,8 +53,8 @@ The fastest way to get started:
 1. **Clone the repository with submodules**
 
    ```bash
-   git clone --recurse-submodules https://github.com/The-AI-Alliance/semiont-agents.git
-   cd semiont-agents
+   git clone --recurse-submodules https://github.com/The-AI-Alliance/semiont-workflows.git
+   cd semiont-workflows
    ```
 
    Or if you already cloned without submodules:
@@ -173,10 +173,10 @@ docker compose ps
 Expected output:
 ```text
 NAME                                     STATUS
-semiont-agents_devcontainer-backend-1    Up (healthy)
-semiont-agents_devcontainer-envoy-1      Up
-semiont-agents_devcontainer-frontend-1   Up (healthy)
-semiont-agents_devcontainer-postgres-1   Up (healthy)
+semiont-workflows_devcontainer-backend-1    Up (healthy)
+semiont-workflows_devcontainer-envoy-1      Up
+semiont-workflows_devcontainer-frontend-1   Up (healthy)
+semiont-workflows_devcontainer-postgres-1   Up (healthy)
 ```
 
 ### Test Envoy Routing

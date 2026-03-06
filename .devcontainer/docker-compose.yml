@@ -3,7 +3,7 @@ services:
   demo-workspace:
     image: mcr.microsoft.com/devcontainers/typescript-node:1-22-bookworm
     volumes:
-      - ..:/workspaces/semiont-agents:cached
+      - ..:/workspaces/semiont-workflows:cached
       - backend_data:/backend-data:ro
     command: sleep infinity
     environment:

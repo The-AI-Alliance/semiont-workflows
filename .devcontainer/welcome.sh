@@ -4,7 +4,7 @@
 cat << 'EOF'
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   Welcome to Semiont Agents Demo!
+   Welcome to Semiont Workflows Demo!
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 Your devcontainer is ready. To complete setup:

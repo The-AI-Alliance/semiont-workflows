@@ -1,4 +1,4 @@
-# Semiont Agents Demo
+# Semiont Workflows Demo
 
 Configuration-driven demonstration of [Semiont](https://github.com/The-AI-Alliance/semiont) SDK features: document processing, chunking, annotations, and validation.
 
@@ -8,7 +8,7 @@ Configuration-driven demonstration of [Semiont](https://github.com/The-AI-Allian
 
 Launch the complete demo environment with one click (no installation required):
 
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new/The-AI-Alliance/semiont-agents)
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new/The-AI-Alliance/semiont-workflows)
 
 **What's included:**
 
@@ -139,7 +139,7 @@ See [docs/ENVOY.md](docs/ENVOY.md) for routing details and [docs/CONTAINER.md](d
 ## Project Structure
 
 ```text
-semiont-agents/
+semiont-workflows/
 ├── demo.ts                   # Main entry point
 ├── src/                      # Reusable modules
 │   ├── auth.ts              # Authentication

@@ -50,7 +50,7 @@ print_error() {
 clear
 
 echo "=========================================="
-echo "   SEMIONT AGENTS DEMO SETUP"
+echo "   SEMIONT WORKFLOWS DEMO SETUP"
 echo "=========================================="
 echo ""
 echo "Version: $SEMIONT_VERSION"
@@ -70,7 +70,7 @@ echo "------------------------------------------"
 echo ""
 
 # Navigate to workspace root
-cd /workspaces/semiont-agents
+cd /workspaces/semiont-workflows
 
 # Install Semiont CLI globally
 print_status "Installing @semiont/cli@latest globally..."
@@ -121,14 +121,14 @@ else
 
     # Copy semiont.json if not present
     if [ ! -f "semiont.json" ]; then
-        cp /workspaces/semiont-agents/.devcontainer/semiont.json semiont.json
+        cp /workspaces/semiont-workflows/.devcontainer/semiont.json semiont.json
         print_success "semiont.json configured"
     fi
 
     # Copy environment config if not present
     mkdir -p environments
     if [ ! -f "environments/demo.json" ]; then
-        cp /workspaces/semiont-agents/.devcontainer/environments-demo.json environments/demo.json
+        cp /workspaces/semiont-workflows/.devcontainer/environments-demo.json environments/demo.json
         print_success "environments/demo.json configured"
     fi
 fi
@@ -372,7 +372,7 @@ if [ -n "${CODESPACE_NAME:-}" ]; then
     SITE_DOMAIN="${CODESPACE_NAME}-8080.app.github.dev"
 
     # Update environment config with Codespaces URLs using Node.js
-    cd /workspaces/semiont-agents
+    cd /workspaces/semiont-workflows
     node -e "
     const fs = require('fs');
     const envFile = 'project/environments/demo.json';
@@ -398,7 +398,7 @@ fi
 
 # Save demo .env credentials
 print_status "Saving demo configuration..."
-cd /workspaces/semiont-agents
+cd /workspaces/semiont-workflows
 
 # For demo scripts running inside the devcontainer, use Docker Compose service names
 # All services are on the same Docker network and can access each other by service name
@@ -468,7 +468,7 @@ print_success "All containers are running the correct version: ${SEMIONT_VERSION
 
 echo ""
 echo "=========================================="
-echo "   ✅ SEMIONT AGENTS DEMO READY!"
+echo "   ✅ SEMIONT WORKFLOWS DEMO READY!"
 echo "=========================================="
 echo ""
 
@@ -498,7 +498,7 @@ echo "   Email:    $DEMO_EMAIL"
 echo "   Password: $DEMO_PASSWORD"
 echo "   Role:     Administrator"
 echo ""
-echo "💾 Credentials saved to: /workspaces/semiont-agents/.env"
+echo "💾 Credentials saved to: /workspaces/semiont-workflows/.env"
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "🎯 NEXT STEP: Run the Interactive Demo"

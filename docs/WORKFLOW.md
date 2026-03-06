@@ -1,6 +1,6 @@
-# Semiont Agents Demo Workflow
+# Semiont Workflows Demo Workflow
 
-This document describes the four-phase workflow used by the Semiont Agents Demo to process documents and create annotations.
+This document describes the four-phase workflow used by the Semiont Workflows Demo to process documents and create annotations.
 
 ## Overview
 

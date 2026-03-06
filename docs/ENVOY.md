@@ -220,7 +220,7 @@ curl -I http://localhost:4000/api/health
 
 ```bash
 # Envoy logs
-docker logs semiont-agents_devcontainer-envoy-1
+docker logs semiont-workflows_devcontainer-envoy-1
 
 # All services
 docker compose logs -f
