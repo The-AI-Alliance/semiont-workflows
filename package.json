@@ -12,8 +12,8 @@
     "demo:interactive": "TERM=xterm-256color node dist/cli.js interactive"
   },
   "dependencies": {
-    "@semiont/api-client": "^0.2.34",
-    "@semiont/cli": "^0.2.34",
+    "@semiont/api-client": "^0.2.35",
+    "@semiont/cli": "^0.2.35",
     "blessed": "^0.1.81",
     "commander": "^14.0.2",
     "handlebars": "^4.7.8",

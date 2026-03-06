@@ -191,6 +191,7 @@ interface DemoState {
   documentIds?: ResourceUri[];
   references?: TableOfContentsReference[];
   formattedText: string;
+  phaseResourceIds?: Record<string, ResourceUri[]>;
 }
 
 function saveState(dataset: DatasetConfigWithPaths, state: Omit<DemoState, 'dataset'>): void {
@@ -290,7 +291,19 @@ async function loadCommand(datasetName: string) {
       accessToken: ACCESS_TOKEN,
     });
 
-    // Branch: Multi-document vs Single-document workflow
+    // Branch: Custom load vs Multi-document vs Single-document workflow
+    if (dataset.customLoad) {
+      // Custom load: handler manages its own multi-phase upload workflow
+      const result = await dataset.customLoad(client, auth);
+      saveState(dataset, {
+        formattedText: '',
+        phaseResourceIds: result.phaseResourceIds,
+      });
+      printCompletion();
+      printInfo(`Total uploaded: ${result.totalUploaded}, failed: ${result.totalFailed}`);
+      return;
+    }
+
     let chunkIds: ResourceUri[];
     let tocId: ResourceUri | undefined;
     let references: TableOfContentsReference[] | undefined;
