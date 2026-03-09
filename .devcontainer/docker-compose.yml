@@ -1,13 +1,17 @@
 services:
   # Development workspace container
+  # Backend and frontend run as posix processes inside this container
+  # (managed by semiont start, same as local setup)
   demo-workspace:
     image: mcr.microsoft.com/devcontainers/typescript-node:1-22-bookworm
     volumes:
       - ..:/workspaces/semiont-workflows:cached
-      - backend_data:/backend-data:ro
     command: sleep infinity
     environment:
       SEMIONT_VERSION: ${SEMIONT_VERSION}
+    ports:
+      - "3000:3000"  # Frontend (for Envoy to reach)
+      - "4000:4000"  # Backend (for Envoy to reach)
 
   # PostgreSQL Database
   postgres:
@@ -27,76 +31,12 @@ services:
       timeout: 5s
       retries: 10
 
-  # Semiont Backend API
-  backend:
-    image: ghcr.io/the-ai-alliance/semiont-backend:${SEMIONT_VERSION}
-    restart: unless-stopped
-    depends_on:
-      postgres:
-        condition: service_healthy
-    volumes:
-      - ../project:/workspace/project:cached
-      - backend_data:/app/data
-    environment:
-      # Database connection
-      DATABASE_URL: postgresql://semiont:semiont@postgres:5432/semiont
-      # Semiont configuration
-      SEMIONT_ROOT: /workspace/project
-      SEMIONT_ENV: demo
-      # JWT
-      JWT_SECRET: ${JWT_SECRET:-demo-jwt-secret-minimum-32-characters-long}
-      # Server
-      PORT: 4000
-      NODE_ENV: production
-      # Logging
-      LOG_LEVEL: debug
-      LOG_FORMAT: simple
-      # Optional AI services
-      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
-      NEO4J_URI: ${NEO4J_URI:-}
-      NEO4J_USERNAME: ${NEO4J_USERNAME:-}
-      NEO4J_PASSWORD: ${NEO4J_PASSWORD:-}
-      NEO4J_DATABASE: ${NEO4J_DATABASE:-}
-    ports:
-      - "4000:4000"  # Direct API access (optional, for demo/debugging)
-    healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:4000/api/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
-
-  # Semiont Frontend UI
-  frontend:
-    image: ghcr.io/the-ai-alliance/semiont-frontend:${SEMIONT_VERSION}
-    restart: unless-stopped
-    depends_on:
-      backend:
-        condition: service_healthy
-    environment:
-      # NextAuth configuration (from .env file created by init-env.sh)
-      NEXTAUTH_URL: ${NEXTAUTH_URL}
-      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-demo-nextauth-secret-minimum-32-characters-long}
-      # Backend URL for server-side calls (Docker service name)
-      SERVER_API_URL: http://backend:4000
-      # Optional OAuth credentials
-      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
-      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
-    healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
-
   # Envoy Proxy - Single public entry point
   envoy:
     image: envoyproxy/envoy:v1.28-latest
     restart: unless-stopped
     depends_on:
-      frontend:
-        condition: service_started
-      backend:
+      demo-workspace:
         condition: service_started
     volumes:
       - ./envoy.yaml:/etc/envoy/envoy.yaml:ro
@@ -106,4 +46,3 @@ services:
 
 volumes:
   postgres_data:
-  backend_data:
