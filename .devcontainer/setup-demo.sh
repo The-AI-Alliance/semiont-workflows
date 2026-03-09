@@ -41,13 +41,12 @@ echo "Environment: $SEMIONT_ENV"
 echo "Root:        $SEMIONT_ROOT"
 echo ""
 
-# Install Semiont CLI and packages inside the container
+# Install Semiont CLI inside the container
 # (init-env.sh installs on the host for semiont init, but postCreateCommand runs inside the container)
-print_status "Installing Semiont packages in container..."
+# Backend and frontend packages are installed by 'semiont provision'
+print_status "Installing Semiont CLI in container..."
 npm install -g \
     "@semiont/cli@$SEMIONT_VERSION" \
-    "@semiont/backend@$SEMIONT_VERSION" \
-    "@semiont/frontend@$SEMIONT_VERSION" \
     --registry https://registry.npmjs.org/ --legacy-peer-deps 2>&1 | tail -3
 print_success "Semiont CLI $(semiont --version 2>&1 | head -1)"
 

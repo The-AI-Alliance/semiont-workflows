@@ -23,13 +23,12 @@ POSTGRES_PASSWORD=semiont
 EOF
 log "Created .env for docker-compose"
 
-# Install Semiont packages globally
+# Install Semiont CLI on the host (needed for semiont init below)
+# Backend and frontend packages are installed by 'semiont provision' inside the container
 log "Installing @semiont/cli@$SEMIONT_VERSION..."
 npm cache clean --force 2>&1 | head -5 || true
 npm install -g \
     "@semiont/cli@$SEMIONT_VERSION" \
-    "@semiont/backend@$SEMIONT_VERSION" \
-    "@semiont/frontend@$SEMIONT_VERSION" \
     --registry https://registry.npmjs.org/ --legacy-peer-deps 2>&1 | grep -v "npm warn" || true
 
 SEMIONT_CLI_VERSION=$(semiont --version 2>&1 | head -1 || echo "CLI command failed")
