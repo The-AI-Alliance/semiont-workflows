@@ -6,8 +6,40 @@ The CLI installs and provisions backend and frontend from pre-built npm packages
 
 ## Prerequisites
 
-- **Node.js** v20 or higher -- install from [nodejs.org](https://nodejs.org/) or via a version manager like [nvm](https://github.com/nvm-sh/nvm)
-- **Docker or Podman** -- install [Docker Desktop](https://www.docker.com/products/docker-desktop/) or [Podman](https://podman.io/docs/installation) (used for PostgreSQL and Envoy proxy containers)
+### Node.js
+
+Version 20 or higher. Install from [nodejs.org](https://nodejs.org/) or via a version manager like [nvm](https://github.com/nvm-sh/nvm).
+
+```bash
+node --version   # should print v20.x or higher
+```
+
+### Docker or Podman
+
+Used for the PostgreSQL database and Envoy proxy containers. Install [Docker Desktop](https://www.docker.com/products/docker-desktop/) or [Podman](https://podman.io/docs/installation).
+
+```bash
+docker --version   # or: podman --version
+```
+
+### Inference (Anthropic)
+
+Required for AI-powered annotation features. Other inference providers coming soon. Get a key from the [Anthropic Console](https://console.anthropic.com/settings/keys).
+
+```bash
+export ANTHROPIC_API_KEY=sk-ant-...
+```
+
+### Graph (Neo4j)
+
+Required for knowledge graph features. Other graph databases coming soon. Set up a free instance at [Neo4j Aura](https://neo4j.com/cloud/aura/) or run Neo4j locally.
+
+```bash
+export NEO4J_URI=bolt://localhost:7687
+export NEO4J_USERNAME=neo4j
+export NEO4J_PASSWORD=your-password
+export NEO4J_DATABASE=neo4j
+```
 
 ## Setup
 
@@ -17,58 +49,26 @@ The CLI installs and provisions backend and frontend from pre-built npm packages
 npm install -g @semiont/cli
 ```
 
-### 2. Create a Project Directory
+### 2. Initialize a Project
 
 ```bash
 mkdir my_semiont_project
 cd my_semiont_project
-```
-
-### 3. Set Environment Variables
-
-```bash
 export SEMIONT_ROOT=$(pwd)
 export SEMIONT_ENV=local
-```
-
-`SEMIONT_ROOT` tells the CLI where your project lives, so you can run commands from any directory.
-
-### 4. Initialize the Project
-
-```bash
 semiont init --verbose
+cd ..
 ```
 
-This creates `semiont.json` and `environments/local.json`.
+`SEMIONT_ROOT` tells the CLI where your project lives, so you can run commands from any directory. `semiont init` creates `semiont.json` and `environments/local.json`.
 
-### 5. Review the Configuration
-
-```bash
-cat environments/local.json
-```
-
-Edit this file to set database credentials, API keys, or adjust ports.
-
-The default `local.json` configures:
+Review `environments/local.json` and edit database credentials or ports as needed. The default configuration uses:
 - **backend** and **frontend** as `posix` platform (local Node.js processes, resolved from installed npm packages)
 - **database** as `container` platform (Docker/Podman)
-- **graph** as `external` platform (Neo4j, requires connection details)
-- **inference** as `external` platform (Anthropic, requires API key)
+- **graph** as `external` platform (Neo4j, uses `NEO4J_*` environment variables)
+- **inference** as `external` platform (Anthropic, uses `ANTHROPIC_API_KEY`)
 
-The graph and inference services reference environment variables that must be set before provisioning:
-
-```bash
-# Neo4j connection
-export NEO4J_URI=bolt://localhost:7687
-export NEO4J_USERNAME=neo4j
-export NEO4J_PASSWORD=your-password
-export NEO4J_DATABASE=neo4j
-
-# Anthropic API
-export ANTHROPIC_API_KEY=sk-ant-...
-```
-
-### 6. Provision Services
+### 3. Provision Services
 
 ```bash
 semiont provision --verbose
@@ -76,31 +76,22 @@ semiont provision --verbose
 
 This generates `.env` files for backend and frontend, runs database migrations using the Prisma schema bundled in the backend package, and processes proxy configuration.
 
-### 7. Start Services
+### 4. Start Services
 
 ```bash
 semiont start --verbose
-```
-
-Starts the database container, backend, frontend, and proxy.
-
-### 8. Verify
-
-```bash
 semiont check
 ```
 
-### 9. Create an Admin User
+Starts the database container, backend, frontend, and proxy. `semiont check` verifies all services are healthy.
+
+### 5. Create an Admin User
 
 ```bash
 semiont useradd --email you@example.com --generate-password --admin
 ```
 
-Note the generated password from the output.
-
-### 10. Configure Demo Credentials
-
-The demo scripts need credentials to authenticate against the backend. Copy the example file and fill in the email and password from step 9:
+Note the generated password from the output. Then configure the demo scripts with these credentials:
 
 ```bash
 cp .env.example .env
@@ -108,9 +99,15 @@ cp .env.example .env
 
 Edit `.env` and set `AUTH_EMAIL` and `AUTH_PASSWORD` to the admin credentials you just created. The other defaults (`BACKEND_URL`, `DATA_DIR`, etc.) are appropriate for a standard local setup.
 
-### 11. Access the Application
+### 6. Access the Application
 
-Open http://localhost:8080 and log in with the admin credentials from step 9.
+Open http://localhost:8080 and log in with the admin credentials from step 5. To run the demo workflows interactively:
+
+```bash
+npm run demo:interactive
+```
+
+See the [README](../README.md) for more details.
 
 ## Service Ports
 
