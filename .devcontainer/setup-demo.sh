@@ -1,6 +1,6 @@
 #!/bin/bash
 # setup-demo.sh - Provision, start services, and create demo admin user
-# Uses the Semiont CLI (same workflow as docs/LOCAL-SEMIONT.md)
+# Uses the Semiont CLI
 
 set -euo pipefail
 
