@@ -100,7 +100,7 @@ print_status "Waiting for backend to be healthy..."
 MAX_WAIT=120
 WAITED=0
 while [ $WAITED -lt $MAX_WAIT ]; do
-    if curl -sf http://127.0.0.1:4000/health > /dev/null 2>&1; then
+    if curl -sf http://127.0.0.1:4000/api/health > /dev/null 2>&1; then
         print_success "Backend is healthy"
         break
     fi
@@ -108,16 +108,33 @@ while [ $WAITED -lt $MAX_WAIT ]; do
     WAITED=$((WAITED + 3))
     if [ $((WAITED % 15)) -eq 0 ]; then
         echo "  Still waiting... (${WAITED}s)"
-        # Show backend log tail for debugging
-        tail -3 /workspaces/semiont-workflows/project/backend/logs/app.log 2>/dev/null || true
+        # Show backend log tails for debugging
+        echo "  -- app.log --"
+        tail -5 "$SEMIONT_ROOT/backend/logs/app.log" 2>/dev/null || echo "  (no app.log)"
+        echo "  -- error.log --"
+        tail -5 "$SEMIONT_ROOT/backend/logs/error.log" 2>/dev/null || echo "  (no error.log)"
+        # Check if process is still alive
+        BACKEND_PID=$(cat "$SEMIONT_ROOT/backend/backend.pid" 2>/dev/null || true)
+        if [ -n "$BACKEND_PID" ] && ! kill -0 "$BACKEND_PID" 2>/dev/null; then
+            echo "  ⚠ Backend process $BACKEND_PID is NOT running (crashed?)"
+        fi
     fi
 done
 
 if [ $WAITED -ge $MAX_WAIT ]; then
     print_error "Backend failed to become healthy within ${MAX_WAIT}s"
-    echo "  Backend logs:"
-    tail -20 /workspaces/semiont-workflows/project/backend/logs/app.log 2>/dev/null || echo "  (no log file found)"
-    tail -20 /workspaces/semiont-workflows/project/backend/logs/error.log 2>/dev/null || true
+    echo "  -- app.log (last 30 lines) --"
+    tail -30 "$SEMIONT_ROOT/backend/logs/app.log" 2>/dev/null || echo "  (no app.log)"
+    echo "  -- error.log (last 30 lines) --"
+    tail -30 "$SEMIONT_ROOT/backend/logs/error.log" 2>/dev/null || echo "  (no error.log)"
+    BACKEND_PID=$(cat "$SEMIONT_ROOT/backend/backend.pid" 2>/dev/null || true)
+    if [ -n "$BACKEND_PID" ]; then
+        if kill -0 "$BACKEND_PID" 2>/dev/null; then
+            echo "  Process $BACKEND_PID is still running but not serving"
+        else
+            echo "  Process $BACKEND_PID has exited (crashed)"
+        fi
+    fi
     exit 1
 fi
 
