@@ -299,7 +299,7 @@
   },
 
   "containerEnv": {
-    "SEMIONT_VERSION": "0.2.41",
+    "SEMIONT_VERSION": "0.2.43",
     "SEMIONT_ENV": "local",
     "SEMIONT_ROOT": "${containerWorkspaceFolder}/project",
     // Fix "client version 1.52 is too new" error when using docker-outside-of-docker
@@ -308,7 +308,7 @@
   },
 
   "remoteEnv": {
-    "SEMIONT_VERSION": "0.2.41",
+    "SEMIONT_VERSION": "0.2.43",
     "SEMIONT_ENV": "local",
     "SEMIONT_ROOT": "${containerWorkspaceFolder}/project",
     // Fix "client version 1.52 is too new" error when using docker-outside-of-docker
