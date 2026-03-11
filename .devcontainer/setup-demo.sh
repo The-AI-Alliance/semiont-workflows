@@ -97,19 +97,27 @@ print_success "Services started"
 
 # Wait for backend to be healthy
 print_status "Waiting for backend to be healthy..."
-MAX_WAIT=60
+MAX_WAIT=120
 WAITED=0
 while [ $WAITED -lt $MAX_WAIT ]; do
-    if curl -sf http://localhost:4000/health > /dev/null 2>&1; then
+    if curl -sf http://127.0.0.1:4000/health > /dev/null 2>&1; then
         print_success "Backend is healthy"
         break
     fi
-    sleep 2
-    WAITED=$((WAITED + 2))
+    sleep 3
+    WAITED=$((WAITED + 3))
+    if [ $((WAITED % 15)) -eq 0 ]; then
+        echo "  Still waiting... (${WAITED}s)"
+        # Show backend log tail for debugging
+        tail -3 /workspaces/semiont-workflows/project/backend/logs/app.log 2>/dev/null || true
+    fi
 done
 
 if [ $WAITED -ge $MAX_WAIT ]; then
     print_error "Backend failed to become healthy within ${MAX_WAIT}s"
+    echo "  Backend logs:"
+    tail -20 /workspaces/semiont-workflows/project/backend/logs/app.log 2>/dev/null || echo "  (no log file found)"
+    tail -20 /workspaces/semiont-workflows/project/backend/logs/error.log 2>/dev/null || true
     exit 1
 fi
 
