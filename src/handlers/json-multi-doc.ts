@@ -14,8 +14,7 @@ import { readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import Handlebars from 'handlebars';
 import type { SemiontApiClient } from '@semiont/api-client';
-import type { AccessToken, ResourceUri } from '@semiont/core';
-import { resourceUri, resourceAnnotationUri } from '@semiont/core';
+import type { AccessToken, ResourceId, AnnotationId } from '@semiont/core';
 import type { DocumentInfo } from '../types.js';
 import type {
   DatasetHandler,
@@ -166,7 +165,7 @@ function renderTemplate(template: string, context: Record<string, unknown>): str
 // Phase Executor
 // ============================================================================
 
-type UriMap = Map<string, ResourceUri>;
+type UriMap = Map<string, ResourceId>;
 
 /**
  * Tracks a document alongside the item context and rendered content,
@@ -189,7 +188,7 @@ interface DocumentWithContext {
  */
 async function createPhaseAnnotations(
   annotations: PhaseAnnotation[],
-  resourceId: ResourceUri,
+  resourceId: ResourceId,
   item: GroupedItem,
   renderedContent: string,
   client: SemiontApiClient,
@@ -201,7 +200,7 @@ async function createPhaseAnnotations(
     if (ann.multi) {
       // One annotation per sub-item
       for (const subItem of item._items) {
-        const targetUri = (subItem as Record<string, unknown>)[ann.ref] as ResourceUri | undefined;
+        const targetUri = (subItem as Record<string, unknown>)[ann.ref] as ResourceId | undefined;
         if (!targetUri) continue;
 
         const anchorText = renderTemplate(ann.anchor, subItem as Record<string, unknown>);
@@ -213,7 +212,7 @@ async function createPhaseAnnotations(
       }
     } else {
       // Single annotation
-      const targetUri = (item as Record<string, unknown>)[ann.ref] as ResourceUri | undefined;
+      const targetUri = (item as Record<string, unknown>)[ann.ref] as ResourceId | undefined;
       if (!targetUri) continue;
 
       const anchorText = renderTemplate(ann.anchor, item);
@@ -244,16 +243,16 @@ function findTextPosition(content: string, text: string): { start: number; end: 
  * Two-step: create stub annotation with text selectors, then add SpecificResource body.
  */
 async function createAndLinkAnnotation(
-  sourceId: ResourceUri,
+  sourceId: ResourceId,
   anchorText: string,
   start: number,
   end: number,
-  targetId: ResourceUri,
+  targetId: ResourceId,
   client: SemiontApiClient,
   auth: AccessToken,
 ): Promise<void> {
   // Step 1: Create stub annotation
-  const response = await client.createAnnotation(resourceUri(sourceId), {
+  const response = await client.createAnnotation(sourceId, {
     motivation: 'linking',
     target: {
       source: sourceId,
@@ -269,18 +268,11 @@ async function createAndLinkAnnotation(
     }],
   }, { auth });
 
-  const annotationId = response.annotation.id;
-  printAnnotationCreated(annotationId);
+  const annId = response.annotationId as AnnotationId;
+  printAnnotationCreated(annId);
 
   // Step 2: Link to target resource
-  const parts = annotationId.split('/annotations/');
-  if (parts.length !== 2 || !parts[1]) {
-    throw new Error(`Invalid annotation ID format: ${annotationId}`);
-  }
-  const annotationIdShort = parts[1];
-  const nestedUri = `${sourceId}/annotations/${annotationIdShort}`;
-
-  await client.updateAnnotationBody(resourceAnnotationUri(nestedUri), {
+  await client.updateAnnotationBody(sourceId, annId, {
     resourceId: sourceId,
     operations: [{
       op: 'add',
@@ -306,7 +298,7 @@ async function executePhase(
   uriMaps: Record<string, UriMap>,
   client: SemiontApiClient,
   auth: AccessToken,
-): Promise<{ uriMap: UriMap; ids: ResourceUri[]; uploaded: number; failed: number }> {
+): Promise<{ uriMap: UriMap; ids: ResourceId[]; uploaded: number; failed: number }> {
   // 1. Select items
   let items = selectItems(jsonData, phase.source);
 
@@ -333,7 +325,7 @@ async function executePhase(
         }
         if (refConfig.multi) {
           // Inject URI onto each sub-item so annotations can use it per sub-item
-          const uris: ResourceUri[] = [];
+          const uris: ResourceId[] = [];
           for (const subItem of item._items) {
             const key = String(resolveFieldPath(subItem, refConfig.matchOn) ?? '');
             const uri = sourceMap.get(key);
@@ -473,7 +465,7 @@ export const jsonMultiDocHandler: DatasetHandler = {
     const baseEntityTypes = config.entityTypes || [];
     const uriMaps: Record<string, UriMap> = {};
     const phaseResults: Record<string, { uploaded: number; failed: number }> = {};
-    const phaseResourceIds: Record<string, ResourceUri[]> = {};
+    const phaseResourceIds: Record<string, ResourceId[]> = {};
     let totalUploaded = 0;
     let totalFailed = 0;
     let stepNumber = 1;
@@ -522,12 +514,12 @@ export const jsonMultiDocHandler: DatasetHandler = {
 
         // Build ToC entry documents (one per item), matching them to URIs
         const tocDocs: DocumentInfo[] = [];
-        const tocDocUris: ResourceUri[] = [];
+        const tocDocUris: ResourceId[] = [];
 
         for (const item of grouped) {
           const entryText = renderTemplate(tocPhase.entryTemplate, item);
           // Find the URI for this item
-          let uri: ResourceUri | undefined;
+          let uri: ResourceId | undefined;
           if (referencedPhase.groupBy) {
             const title = renderTemplate(referencedPhase.title, item);
             uri = phaseUriMap.get(`__title__${title}`);
@@ -566,7 +558,7 @@ export const jsonMultiDocHandler: DatasetHandler = {
       printSectionHeader('📑', stepNumber++, `Master ToC: ${config.masterToc.title}`);
 
       const masterDocs: DocumentInfo[] = [];
-      const masterDocUris: ResourceUri[] = [];
+      const masterDocUris: ResourceId[] = [];
 
       for (let i = 0; i < config.masterToc.entries.length; i++) {
         const entryText = config.masterToc.entries[i];
@@ -578,7 +570,7 @@ export const jsonMultiDocHandler: DatasetHandler = {
           if (tocUri) {
             masterDocUris.push(tocUri);
           } else {
-            masterDocUris.push('' as ResourceUri); // placeholder
+            masterDocUris.push('' as ResourceId); // placeholder
           }
         }
       }

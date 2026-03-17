@@ -7,10 +7,10 @@
 import { writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import type { SemiontApiClient } from '@semiont/api-client';
-import type { AccessToken, ResourceUri } from '@semiont/core';
+import type { AccessToken, ResourceId } from '@semiont/core';
 
 export interface ValidationResult {
-  uri: ResourceUri;
+  uri: ResourceId;
   status: 'success' | 'error';
   mediaType?: string;
   checksum?: string;
@@ -23,7 +23,7 @@ export interface ValidationResult {
  * Validate all resources for a dataset
  */
 export async function validateResources(
-  resourceIds: ResourceUri[],
+  resourceIds: ResourceId[],
   client: SemiontApiClient,
   auth: AccessToken
 ): Promise<ValidationResult[]> {

@@ -1,6 +1,6 @@
 import { existsSync, writeFileSync } from 'node:fs';
 import { SemiontApiClient } from '@semiont/api-client';
-import type { ResourceUri } from '@semiont/core';
+import type { ResourceId } from '@semiont/core';
 import { baseUrl } from '@semiont/core';
 import { DATASETS } from '../datasets/loader.js';
 import { chunkBySize, chunkText, type ChunkInfo } from '../chunking.js';
@@ -28,11 +28,11 @@ import {
 
 interface DemoState {
   dataset: string;
-  tocId?: ResourceUri;
-  chunkIds?: ResourceUri[];
+  tocId?: ResourceId;
+  chunkIds?: ResourceId[];
   references?: TableOfContentsReference[];
   formattedText: string;
-  phaseResourceIds?: Record<string, ResourceUri[]>;
+  phaseResourceIds?: Record<string, ResourceId[]>;
 }
 
 function saveState(dataset: { name: string; stateFile: string }, state: Omit<DemoState, 'dataset'>): void {
@@ -90,8 +90,8 @@ export async function loadCommand(datasetName: string): Promise<void> {
       return;
     }
 
-    let chunkIds: ResourceUri[];
-    let tocId: ResourceUri | undefined;
+    let chunkIds: ResourceId[];
+    let tocId: ResourceId | undefined;
     let references: TableOfContentsReference[] | undefined;
     let formattedText = '';
 

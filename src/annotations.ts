@@ -5,8 +5,7 @@
  */
 
 import type { SemiontApiClient } from '@semiont/api-client';
-import type { AccessToken, ResourceUri } from '@semiont/core';
-import { resourceUri, resourceAnnotationUri } from '@semiont/core';
+import type { AccessToken, ResourceId, AnnotationId } from '@semiont/core';
 import { printBatchProgress, printSuccess, printWarning, printAnnotationCreated } from './display';
 import type { TableOfContentsReference } from './resources';
 
@@ -18,9 +17,9 @@ export interface CreateStubReferencesOptions {
  * Create stub annotations (references without targets yet)
  */
 export async function createStubReferences(
-  tocId: ResourceUri,
+  tocId: ResourceId,
   references: TableOfContentsReference[],
-  chunkIds: ResourceUri[],
+  chunkIds: ResourceId[],
   client: SemiontApiClient,
   auth: AccessToken,
   options: CreateStubReferencesOptions = {}
@@ -32,7 +31,7 @@ export async function createStubReferences(
 
     printBatchProgress(i + 1, references.length, `Creating annotation for "${ref.text}"...`);
 
-    const response = await client.createAnnotation(resourceUri(tocId), {
+    const response = await client.createAnnotation(tocId, {
       motivation: 'linking',
       target: {
         source: tocId,
@@ -56,9 +55,9 @@ export async function createStubReferences(
     }, { auth });
 
     // Store the FULL annotation ID (includes URL prefix)
-    ref.annotationId = response.annotation.id;
+    ref.annotationId = response.annotationId;
 
-    printAnnotationCreated(response.annotation.id);
+    printAnnotationCreated(response.annotationId);
   }
 
   printSuccess(`Created ${references.length} stub annotations`);
@@ -73,7 +72,7 @@ export interface LinkReferencesOptions {
  * Link stub references to target documents
  */
 export async function linkReferences(
-  tocId: ResourceUri,
+  tocId: ResourceId,
   references: TableOfContentsReference[],
   client: SemiontApiClient,
   auth: AccessToken,
@@ -91,15 +90,7 @@ export async function linkReferences(
     }
 
     try {
-      // Match compose page pattern: short annotation ID in path, full resource URI in body
-      const parts = ref.annotationId!.split('/annotations/');
-      if (parts.length !== 2 || !parts[1]) {
-        throw new Error(`Invalid annotation ID format: ${ref.annotationId}`);
-      }
-      const annotationIdShort = parts[1];
-      const nestedUri = `${tocId}/annotations/${annotationIdShort}`;
-
-      await client.updateAnnotationBody(resourceAnnotationUri(nestedUri), {
+      await client.updateAnnotationBody(tocId, ref.annotationId! as AnnotationId, {
         resourceId: tocId,
         operations: [{
           op: 'add',

@@ -6,7 +6,7 @@
  */
 
 import type { SemiontApiClient } from '@semiont/api-client';
-import type { AccessToken, ResourceUri } from '@semiont/core';
+import type { AccessToken, ResourceId } from '@semiont/core';
 import type { DocumentInfo } from '../types.js';
 
 /**
@@ -134,7 +134,7 @@ export interface CustomLoadResult {
   totalUploaded: number;
   totalFailed: number;
   phaseResults: Record<string, { uploaded: number; failed: number }>;
-  phaseResourceIds: Record<string, ResourceUri[]>;
+  phaseResourceIds: Record<string, ResourceId[]>;
 }
 
 /**

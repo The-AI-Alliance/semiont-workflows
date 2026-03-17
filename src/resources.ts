@@ -5,8 +5,7 @@
  */
 
 import type { SemiontApiClient } from '@semiont/api-client';
-import type { AccessToken, ResourceUri } from '@semiont/core';
-import { resourceUri } from '@semiont/core';
+import type { AccessToken, ResourceId } from '@semiont/core';
 import type { ChunkInfo } from './chunking';
 import type { DocumentInfo } from './types';
 import { printBatchProgress, printSuccess, printInfo, printWarning } from './display';
@@ -18,7 +17,7 @@ export interface UploadOptions {
 }
 
 export interface UploadResult<T> {
-  ids: ResourceUri[];
+  ids: ResourceId[];
   uploaded: T[];
   failed: UploadFailure[];
 }
@@ -37,7 +36,7 @@ export async function uploadChunks(
   auth: AccessToken,
   options: UploadOptions = {}
 ): Promise<UploadResult<ChunkInfo>> {
-  const ids: ResourceUri[] = [];
+  const ids: ResourceId[] = [];
   const uploaded: ChunkInfo[] = [];
   const failed: UploadFailure[] = [];
   const { entityTypes = [] } = options;
@@ -55,7 +54,7 @@ export async function uploadChunks(
       };
 
       const response = await client.createResource(request, { auth });
-      const resourceId = resourceUri(response.resource['@id']);
+      const resourceId = response.resourceId as ResourceId;
       ids.push(resourceId);
       uploaded.push(chunk);
       printSuccess(resourceId, 7);
@@ -85,7 +84,7 @@ export interface TableOfContentsReference {
   text: string;
   start: number;
   end: number;
-  documentId: ResourceUri;
+  documentId: ResourceId;
   annotationId?: string;
 }
 
@@ -102,7 +101,7 @@ export async function createTableOfContents(
   client: SemiontApiClient,
   auth: AccessToken,
   options: TableOfContentsOptions
-): Promise<{ tocId: ResourceUri; references: TableOfContentsReference[] }> {
+): Promise<{ tocId: ResourceId; references: TableOfContentsReference[] }> {
   const { title, entityTypes = [] } = options;
 
   // Build markdown content with timestamp to ensure unique document ID
@@ -122,7 +121,7 @@ export async function createTableOfContents(
       text: partText,
       start,
       end,
-      documentId: '' as ResourceUri, // Will be filled by caller
+      documentId: '' as ResourceId, // Will be filled by caller
     });
 
     content += listItem;
@@ -138,7 +137,7 @@ export async function createTableOfContents(
   };
 
   const response = await client.createResource(request, { auth });
-  const tocId = resourceUri(response.resource['@id']);
+  const tocId = response.resourceId as ResourceId;
   printSuccess(`Created ToC: ${tocId}`);
 
   return { tocId, references };
@@ -154,7 +153,7 @@ export async function uploadDocuments(
   auth: AccessToken,
   options: UploadOptions = {}
 ): Promise<UploadResult<DocumentInfo>> {
-  const ids: ResourceUri[] = [];
+  const ids: ResourceId[] = [];
   const uploaded: DocumentInfo[] = [];
   const failed: UploadFailure[] = [];
   const { entityTypes = [] } = options;
@@ -179,7 +178,7 @@ export async function uploadDocuments(
       };
 
       const response = await client.createResource(request, { auth });
-      const resourceId = resourceUri(response.resource['@id']);
+      const resourceId = response.resourceId as ResourceId;
       ids.push(resourceId);
       uploaded.push(doc);
       printSuccess(resourceId, 7);
@@ -203,7 +202,7 @@ export async function createDocumentTableOfContents(
   client: SemiontApiClient,
   auth: AccessToken,
   options: TableOfContentsOptions
-): Promise<{ tocId: ResourceUri; references: TableOfContentsReference[] }> {
+): Promise<{ tocId: ResourceId; references: TableOfContentsReference[] }> {
   const { title, entityTypes = [] } = options;
 
   // Build markdown content with timestamp to ensure unique document ID
@@ -223,7 +222,7 @@ export async function createDocumentTableOfContents(
       text: docText,
       start,
       end,
-      documentId: '' as ResourceUri, // Will be filled by caller
+      documentId: '' as ResourceId, // Will be filled by caller
     });
 
     content += listItem;
@@ -239,7 +238,7 @@ export async function createDocumentTableOfContents(
   };
 
   const response = await client.createResource(request, { auth });
-  const tocId = resourceUri(response.resource['@id']);
+  const tocId = response.resourceId as ResourceId;
   printSuccess(`Created ToC: ${tocId}`);
 
   return { tocId, references };

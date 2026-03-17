@@ -5,16 +5,15 @@
  */
 
 import type { SemiontApiClient } from '@semiont/api-client';
-import type { AccessToken, StoredEvent } from '@semiont/core';
-import { resourceUri } from '@semiont/core';
+import type { AccessToken, ResourceId, StoredEvent } from '@semiont/core';
 import { printInfo, printWarning, printEventBreakdown, printEvent, type EventDetails } from './display';
 
 /**
  * Show document event history
  */
-export async function showDocumentHistory(tocId: string, client: SemiontApiClient, auth: AccessToken): Promise<void> {
+export async function showDocumentHistory(tocId: ResourceId, client: SemiontApiClient, auth: AccessToken): Promise<void> {
   try {
-    const data = await client.getResourceEvents(resourceUri(tocId), { auth });
+    const data = await client.getResourceEvents(tocId, { auth });
 
     if (!data.events || data.events.length === 0) {
       printWarning('No events found for document');

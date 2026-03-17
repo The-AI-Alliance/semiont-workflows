@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { SemiontApiClient } from '@semiont/api-client';
-import type { ResourceUri } from '@semiont/core';
+import type { ResourceId } from '@semiont/core';
 import { baseUrl } from '@semiont/core';
 import type { DatasetConfigWithPaths } from '../types.js';
 import { DATASETS } from '../datasets/loader.js';
@@ -17,9 +17,9 @@ import {
 
 interface DemoState {
   dataset: string;
-  tocId?: ResourceUri;
-  chunkIds?: ResourceUri[];
-  documentIds?: ResourceUri[];
+  tocId?: ResourceId;
+  chunkIds?: ResourceId[];
+  documentIds?: ResourceId[];
   references?: TableOfContentsReference[];
   formattedText: string;
 }
@@ -75,7 +75,7 @@ export async function validateCommand(datasetName: string): Promise<void> {
     const state = loadState(dataset);
 
     // Collect all resource URIs
-    const allResources: ResourceUri[] = [];
+    const allResources: ResourceId[] = [];
 
     if (state.tocId) {
       allResources.push(state.tocId);

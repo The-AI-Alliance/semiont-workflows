@@ -4,7 +4,7 @@
  * Console output utilities for progress tracking and results display.
  */
 
-import type { ResourceUri } from '@semiont/core';
+import type { ResourceId } from '@semiont/core';
 import type { ChunkInfo } from './chunking';
 
 /**
@@ -122,8 +122,8 @@ export function printEvent(event: EventDetails): void {
  * Prints final results summary
  */
 export interface ResultsSummary {
-  tocId: ResourceUri;
-  chunkIds: ResourceUri[];
+  tocId: ResourceId;
+  chunkIds: ResourceId[];
   linkedCount: number;
   totalCount: number;
   frontendUrl: string;
@@ -132,21 +132,12 @@ export interface ResultsSummary {
 export function printResults(summary: ResultsSummary): void {
   printSectionHeader('✨', 7, 'Results');
 
-  // Extract resource ID from full URI
-  const getTocResourceId = (uri: ResourceUri): string => {
-    const parts = uri.split('/resources/');
-    if (parts.length !== 2 || !parts[1]) {
-      throw new Error(`Invalid resource URI format: ${uri}`);
-    }
-    return parts[1];
-  };
-
   console.log('\n📋 Table of Contents:');
-  console.log(`   ${summary.frontendUrl}/en/know/resource/${getTocResourceId(summary.tocId)}`);
+  console.log(`   ${summary.frontendUrl}/en/know/resource/${summary.tocId}`);
 
   console.log('\n📚 Document Chunks:');
   summary.chunkIds.forEach((id, index) => {
-    console.log(`   Part ${index + 1}: ${summary.frontendUrl}/en/know/resource/${getTocResourceId(id)}`);
+    console.log(`   Part ${index + 1}: ${summary.frontendUrl}/en/know/resource/${id}`);
   });
 
   console.log('\n📊 Summary:');

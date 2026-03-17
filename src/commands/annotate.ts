@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { SemiontApiClient } from '@semiont/api-client';
-import type { ResourceUri } from '@semiont/core';
-import { baseUrl, resourceUri, EventBus } from '@semiont/core';
+import type { ResourceId } from '@semiont/core';
+import { baseUrl, EventBus } from '@semiont/core';
 import type { DatasetConfigWithPaths } from '../types.js';
 import type { HighlightPhaseConfig } from '../handlers/types.js';
 import { DATASETS } from '../datasets/loader.js';
@@ -23,11 +23,11 @@ import {
 
 interface DemoState {
   dataset: string;
-  tocId?: ResourceUri;
-  chunkIds?: ResourceUri[];
+  tocId?: ResourceId;
+  chunkIds?: ResourceId[];
   references?: TableOfContentsReference[];
   formattedText: string;
-  phaseResourceIds?: Record<string, ResourceUri[]>;
+  phaseResourceIds?: Record<string, ResourceId[]>;
 }
 
 function loadState(dataset: DatasetConfigWithPaths): DemoState {
@@ -48,7 +48,7 @@ function loadState(dataset: DatasetConfigWithPaths): DemoState {
  * Run annotateHighlights on a single resource via SSE, returning the number of highlights created.
  */
 async function annotateHighlightsForResource(
-  resourceId: ResourceUri,
+  resourceId: ResourceId,
   instructions: string,
   density: number | undefined,
   client: SemiontApiClient,
@@ -57,12 +57,12 @@ async function annotateHighlightsForResource(
   const eventBus = new EventBus();
 
   const completionPromise = new Promise<void>((resolve, reject) => {
-    const finishedSub = eventBus.get('annotate:assist-finished').subscribe(() => {
+    const finishedSub = eventBus.get('mark:assist-finished').subscribe(() => {
       finishedSub.unsubscribe();
       failedSub.unsubscribe();
       resolve();
     });
-    const failedSub = eventBus.get('annotate:assist-failed').subscribe((result) => {
+    const failedSub = eventBus.get('mark:assist-failed').subscribe((result) => {
       finishedSub.unsubscribe();
       failedSub.unsubscribe();
       const msg = (result as unknown as Record<string, unknown>).error ?? 'Unknown error';
@@ -237,7 +237,7 @@ export async function annotateCommand(datasetName: string): Promise<void> {
         printInfo(`Found ${citations.length} citation(s)`, 7);
 
         for (const citation of citations) {
-          await client.createAnnotation(resourceUri(chunkId), {
+          await client.createAnnotation(chunkId, {
             motivation: 'linking',
             target: {
               source: chunkId,
